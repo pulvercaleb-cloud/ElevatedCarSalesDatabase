@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Elevated Car Sales</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;cursor:default}
+button,select,[onclick]{cursor:pointer}
+input,textarea{cursor:text}
+:root{--sw:220px;--acc:#4F8EF7;--acc2:#22D3A5;--dan:#F75A5A;--warn:#F7A84F;--d1:#0F1117;--d2:#181C27;--d3:#1E2333;--d4:#252B3B;--d5:#2E3650;--t1:#F0F2FF;--t2:#9BA8C4;--t3:#6B7896;--bdr:#2E3650;--card:#1E2333}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--d1);color:var(--t1);min-height:100vh}
+.sidebar{width:var(--sw);background:var(--d2);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100%;z-index:50;transition:transform .25s}
+.sb-logo{padding:18px 20px 14px;border-bottom:1px solid var(--bdr)}
+.sb-lm{font-size:15px;font-weight:700;letter-spacing:-.3px}.sb-lm span{color:var(--acc)}
+.sb-sub{font-size:10px;color:var(--t3);margin-top:2px;letter-spacing:.06em;text-transform:uppercase}
+.sb-nav{padding:10px;flex:1;overflow-y:auto}
+.sb-sec{font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;padding:12px 10px 5px;font-weight:700}
+.sbi{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--t2);transition:all .15s;margin-bottom:2px;border:1px solid transparent}
+.sbi:hover{background:var(--d4);color:var(--t1)}
+.sbi.active{background:rgba(79,142,247,.14);color:var(--acc);border-color:rgba(79,142,247,.2)}
+.sbi i{font-size:17px;flex-shrink:0}
+.sb-foot{padding:14px;border-top:1px solid var(--bdr)}
+.main{margin-left:var(--sw);display:flex;flex-direction:column;min-height:100vh}
+.topbar{height:56px;background:var(--d2);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:40}
+.tbl{display:flex;align-items:center;gap:12px}
+.mbtn{background:none;border:none;font-size:20px;display:none;padding:4px;color:var(--t2)}
+.pt{font-size:15px;font-weight:600}.ps{font-size:12px;color:var(--t3);margin-top:1px}
+.tbr{display:flex;align-items:center;gap:8px}
+.sync{font-size:11px;color:var(--t3);display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;background:var(--d4);border:1px solid var(--bdr)}
+.sync.saving{color:var(--warn)}.sync.saved{color:var(--acc2)}.sync.error{color:var(--dan)}
+.btn{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;border:none;transition:opacity .15s}
+.btn:hover{opacity:.82}
+.btn-p{background:var(--acc);color:#fff}
+.btn-s{background:var(--d4);color:var(--t1);border:1px solid var(--bdr)}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px;background:var(--d4);border:1px solid var(--bdr);color:var(--t2)}
+.btn-sm:hover{background:var(--d5);color:var(--t1)}
+.btn-danger{background:rgba(247,90,90,.12);color:var(--dan);border:1px solid rgba(247,90,90,.2)}
+.content{padding:20px;flex:1}
+.pg{display:none}.pg.active{display:block}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:18px;margin-bottom:16px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.card-title{font-size:13px;font-weight:600;color:var(--t1)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.mc{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px;position:relative;overflow:hidden}
+.mc-acc{position:absolute;top:0;left:0;width:3px;height:100%}
+.mc-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px}
+.mc-val{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.mc-sub{font-size:11px;color:var(--t3);margin-top:4px}
+.g{color:#22D3A5;font-weight:700}.r{color:#F75A5A;font-weight:700}.acc{color:var(--acc);font-weight:700}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.bg{background:rgba(34,211,165,.15);color:#22D3A5}.ba{background:rgba(247,168,79,.15);color:#F7A84F}
+.br{background:rgba(247,90,90,.15);color:#F75A5A}.bb{background:rgba(79,142,247,.15);color:#4F8EF7}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 12px;font-size:10px;font-weight:700;color:var(--t3);border-bottom:1px solid var(--bdr);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(46,54,80,.5);color:var(--t1);white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(79,142,247,.04)}
+input,select,textarea{width:100%;background:var(--d4);border:1px solid var(--bdr);border-radius:8px;padding:0 12px;font-size:13px;color:var(--t1);height:38px;outline:none;transition:border-color .15s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+input::placeholder{color:var(--t3)}
+select option{background:var(--d3)}
+textarea{height:70px;padding:10px 12px;resize:none}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.fg label{font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.sl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin:16px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}
+.modal-wrap{display:none;position:fixed;inset:0;z-index:100}
+.modal-wrap.open{display:block}
+.overlay{background:rgba(0,0,0,.75);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;min-height:100vh;overflow-y:auto}
+.modal{background:var(--d3);border:1px solid var(--bdr);border-radius:16px;padding:24px;width:100%;max-width:640px;margin:auto}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.mtitle{font-size:16px;font-weight:700}
+.xbtn{background:var(--d4);border:1px solid var(--bdr);border-radius:8px;color:var(--t2);font-size:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.xbtn:hover{background:var(--d5);color:var(--t1)}
+.calc-row{background:var(--d4);border:1px solid var(--bdr);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tog-row{display:flex;gap:4px;background:var(--d4);border:1px solid var(--bdr);border-radius:8px;padding:3px}
+.tog-btn{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--t3);transition:all .15s}
+.tog-btn.active{background:var(--d5);color:var(--t1)}
+.drow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(46,54,80,.4);font-size:13px}
+.drow:last-child{border-bottom:none}
+.cx-layout{display:grid;grid-template-columns:280px 1fr;gap:16px;min-height:520px}
+.cx-list{background:var(--card);border:1px solid var(--bdr);border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.cx-scroll{overflow-y:auto;flex:1;max-height:500px}
+.cx-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid rgba(46,54,80,.4);transition:background .12s;border-left:3px solid transparent}
+.cx-item:hover{background:rgba(79,142,247,.06)}
+.cx-item.active{background:rgba(79,142,247,.14);border-left-color:var(--acc)}
+.cx-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.cx-detail{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:20px}
+.cx-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--t3);gap:10px}
+.cx-av-lg{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.tip{position:fixed;background:var(--d2);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;font-size:12px;pointer-events:none;z-index:300;white-space:nowrap;display:none}
+.tip.show{display:block}
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--t3);gap:10px;font-size:13px}
+.csv-import{background:var(--d4);border:2px dashed var(--bdr);border-radius:10px;padding:20px;text-align:center;margin-bottom:16px;transition:border-color .15s}
+.csv-import:hover{border-color:var(--acc)}
+.csv-import input[type=file]{display:none}
+.csv-import label{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--t2);font-size:13px}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}.mbtn{display:block}
+  .cx-layout{grid-template-columns:1fr}.fgrid3{grid-template-columns:1fr 1fr}.fgrid{grid-template-columns:1fr}
+  .mgrid{grid-template-columns:1fr 1fr}.content{padding:12px}
+  .overlay{padding:0}.modal{border-radius:0;min-height:100vh}
+  .sync span.sync-label{display:none}
+}
+</style>
+</head>
+<body>
+<div id="tooltip" class="tip"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sb-logo"><div class="sb-lm"><span>ECS</span> &middot; Elevated Car Sales</div><div class="sb-sub">Dealer Management</div></div>
+  <div class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <div class="sbi active" onclick="showPg('dash',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+    <div class="sb-sec">Operations</div>
+    <div class="sbi" onclick="showPg('customers',this)"><i class="ti ti-users"></i>Customers</div>
+    <div class="sbi" onclick="showPg('inventory',this)"><i class="ti ti-car"></i>Inventory</div>
+    <div class="sbi" onclick="showPg('listings',this)"><i class="ti ti-photo"></i>Listings</div>
+    <div class="sbi" onclick="showPg('expenses',this)"><i class="ti ti-receipt"></i>Expenses</div>
+    <div class="sb-sec">Finance</div>
+    <div class="sbi" onclick="showPg('pl',this)"><i class="ti ti-report-money"></i>Monthly P&amp;L</div>
+    <div class="sbi" onclick="showPg('reports',this)"><i class="ti ti-chart-bar"></i>Reports</div>
+  </div>
+  <div class="sb-foot">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4F8EF7,#22D3A5);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">C</div>
+      <div><div style="font-size:12px;font-weight:600">Caleb</div><div style="font-size:11px;color:var(--t3)">Elevated Car Sales LLC</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="main">
+  <div class="topbar">
+    <div class="tbl">
+      <button class="mbtn" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="ti ti-menu-2"></i></button>
+      <div><div class="pt" id="pg-title">Dashboard</div><div class="ps" id="pg-sub">May 2026</div></div>
+    </div>
+    <div class="tbr">
+      <div class="sync" id="sync-status"><i class="ti ti-cloud-check"></i><span class="sync-label">Synced</span></div>
+      <button class="btn btn-s" onclick="openExpModal()"><i class="ti ti-plus"></i>Expense</button>
+      <button class="btn btn-p" onclick="openVehicleModal(null)"><i class="ti ti-car"></i>Add vehicle</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="pg-dash" class="pg active">
+      <div class="mgrid" id="dash-metrics"></div>
+      <div class="card">
+        <div class="card-hdr"><div><div class="card-title">Daily profit &mdash; May 2026</div><div style="font-size:11px;color:var(--t3);margin-top:2px">Hover bars to see deal details</div></div></div>
+        <div style="position:relative;height:200px"><canvas id="c-daily"></canvas></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card"><div class="card-title" style="margin-bottom:10px">Profit per vehicle</div><div style="position:relative;height:180px"><canvas id="c-profit"></canvas></div></div>
+        <div class="card">
+          <div class="card-hdr" style="margin-bottom:6px">
+            <div class="card-title">Yearly overview</div>
+            <div class="tog-row" id="yearly-tog">
+              <button class="tog-btn active" onclick="setYTog('profit',this)">Profit</button>
+              <button class="tog-btn" onclick="setYTog('revenue',this)">Revenue</button>
+              <button class="tog-btn" onclick="setYTog('expenses',this)">Expenses</button>
+            </div>
+          </div>
+          <div style="position:relative;height:160px"><canvas id="c-yearly"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Recent vehicles</div><button class="btn btn-s" style="font-size:11px;padding:6px 12px" onclick="showPg('inventory',document.querySelectorAll('.sbi')[2])">View all</button></div>
+        <div class="tw"><table><thead><tr><th>Vehicle</th><th>Days to sell</th><th>Total cost</th><th>Sale</th><th>Profit</th><th>Status</th></tr></thead><tbody id="dash-table"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div id="pg-customers" class="pg">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btn-p" onclick="openCxModal(null)"><i class="ti ti-user-plus"></i> Add customer</button></div>
+      <div class="cx-layout">
+        <div class="cx-list">
+          <div style="padding:10px;border-bottom:1px solid var(--bdr)"><input type="text" id="cx-search" placeholder="Search name, phone, car..." oninput="renderCxList()"/></div>
+          <div class="cx-scroll" id="cx-scroll"></div>
+        </div>
+        <div class="cx-detail" id="cx-detail"><div class="cx-empty"><i class="ti ti-users" style="font-size:40px;opacity:.3"></i><div style="font-size:13px">Select a customer</div></div></div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div id="pg-inventory" class="pg">
+      <div class="card">
+        <div class="card-hdr">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="inv-filter" onchange="renderInv()" style="width:130px;height:34px;font-size:12px"><option value="">All statuses</option><option>In Stock</option><option>Pending</option><option>Sold</option></select>
+            <input type="text" id="inv-search" placeholder="Search..." oninput="renderInv()" style="width:150px;height:34px;font-size:12px"/>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-s" onclick="document.getElementById('csv-input').click()" title="Import from CSV"><i class="ti ti-upload"></i> Import CSV</button>
+            <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="importCSV(event)"/>
+            <button class="btn btn-p" onclick="openVehicleModal(null)"><i class="ti ti-plus"></i> Add vehicle</button>
+          </div>
+        </div>
+        <div class="tw"><table><thead><tr><th>Vehicle</th><th>Mileage</th><th>VIN</th><th>Purchased</th><th>Buy</th><th>Recon</th><th>Total cost</th><th>Sale w/doc</th><th>Trade</th><th>Profit</th><th>Tax</th><th>Fees</th><th>Collected</th><th>Date sold</th><th>Days to sell</th><th>Owner</th><th>Address</th><th>Phone</th><th>Fee reserve</th><th>Tax paid</th><th>Floored</th><th>Paperwork</th><th>Status</th><th></th></tr></thead><tbody id="inv-table"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- LISTINGS -->
+    <div id="pg-listings" class="pg">
+      <div class="card-hdr" style="margin-bottom:16px">
+        <div><div style="font-size:16px;font-weight:700">Active Listings</div><div style="font-size:12px;color:var(--t3);margin-top:3px">Your current vehicles for sale</div></div>
+        <select id="listing-filter" onchange="renderListings()" style="height:34px;font-size:12px;width:130px"><option value="">All</option><option value="active">For Sale</option><option value="sold">Sold</option></select>
+      </div>
+      <div id="listings-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div id="pg-expenses" class="pg">
+      <div class="mgrid" id="exp-metrics"></div>
+      <div class="card">
+        <div class="card-hdr">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="text" id="exp-search" placeholder="Search expenses..." oninput="renderExp()" style="width:180px;height:34px;font-size:12px"/>
+            <select id="exp-mf" onchange="renderExp()" style="width:120px;height:34px;font-size:12px"><option value="">All months</option><option value="2026-01">Jan</option><option value="2026-02">Feb</option><option value="2026-03">Mar</option><option value="2026-04">Apr</option><option value="2026-05" selected>May</option></select>
+            <select id="exp-cf" onchange="renderExp()" style="width:150px;height:34px;font-size:12px"><option value="">All categories</option><option>Insurance</option><option>DMV / title fees</option><option>Advertising</option><option>Vehicle repair</option><option>Floorplan interest</option><option>Office / supplies</option><option>Dealer license / fees</option><option>Accounting / legal</option><option>Other</option></select>
+          </div>
+          <button class="btn btn-p" onclick="openExpModal()"><i class="ti ti-plus"></i> Add expense</button>
+        </div>
+        <div class="tw"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Vehicle</th><th></th></tr></thead><tbody id="exp-table"></tbody></table></div>
+        <div style="display:flex;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--bdr);margin-top:4px"><span style="font-size:13px;color:var(--t2)">Total: <span id="exp-total" class="r" style="font-size:15px">$0</span></span></div>
+      </div>
+    </div>
+
+    <!-- P&L -->
+    <div id="pg-pl" class="pg">
+      <div style="margin-bottom:14px"><select id="pl-month" onchange="renderPL()" style="width:160px"><option value="2026-01">January 2026</option><option value="2026-02">February 2026</option><option value="2026-03">March 2026</option><option value="2026-04">April 2026</option><option value="2026-05" selected>May 2026</option></select></div>
+      <div class="mgrid" id="pl-metrics"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card"><div class="card-title" style="margin-bottom:12px">Revenue</div><div id="pl-rev"></div></div>
+        <div class="card"><div class="card-title" style="margin-bottom:12px">Expenses</div><div id="pl-exp"></div></div>
+      </div>
+      <div class="card"><div class="card-title" style="margin-bottom:12px">Vehicles sold</div><div class="tw"><table><thead><tr><th>Vehicle</th><th>Buy</th><th>Recon</th><th>Sale</th><th>Tax</th><th>Fees</th><th>Collected</th><th>Profit</th></tr></thead><tbody id="pl-veh"></tbody></table></div></div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="pg-reports" class="pg">
+      <div class="mgrid" id="rep-metrics"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card"><div class="card-title" style="margin-bottom:10px">Monthly profit trend</div><div style="position:relative;height:200px"><canvas id="c-trend"></canvas></div></div>
+        <div class="card"><div class="card-title" style="margin-bottom:10px">Revenue vs expenses</div><div style="position:relative;height:200px"><canvas id="c-revexp"></canvas></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card"><div class="card-title" style="margin-bottom:10px">Profit by make</div><div style="position:relative;height:180px"><canvas id="c-make"></canvas></div></div>
+        <div class="card"><div class="card-title" style="margin-bottom:10px">Expenses by month</div><div style="position:relative;height:180px"><canvas id="c-expmon"></canvas></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- VEHICLE MODAL -->
+<div class="modal-wrap" id="veh-modal"><div class="overlay"><div class="modal">
+  <div class="mhdr"><span class="mtitle" id="vmod-title">Add vehicle</span><button class="xbtn" onclick="closeVehicleModal()">&#x2715;</button></div>
+  <div class="sl">Vehicle info</div>
+  <div class="fgrid3">
+    <div class="fg"><label>Year</label><input id="v-year" type="number" placeholder="2019"/></div>
+    <div class="fg"><label>Make</label><select id="v-make"><option value="">Select</option><option>Toyota</option><option>Lexus</option><option>Honda</option><option>Subaru</option><option>Acura</option><option>Mazda</option><option>Nissan</option><option>Infiniti</option><option>Other</option></select></div>
+    <div class="fg"><label>Model</label><input id="v-model" placeholder="Camry"/></div>
+    <div class="fg"><label>Trim</label><input id="v-trim" placeholder="XLE"/></div>
+    <div class="fg"><label>Color</label><input id="v-color" placeholder="Silver"/></div>
+    <div class="fg"><label>Mileage</label><input id="v-miles" type="number" placeholder="85000"/></div>
+    <div class="fg" style="grid-column:span 2"><label>VIN</label><input id="v-vin" placeholder="1HGBH41JXMN109186"/></div>
+    <div class="fg"><label>Title type</label><select id="v-title"><option>Clean</option><option>Rebuilt</option><option>Salvage</option></select></div>
+  </div>
+  <div class="sl">Purchase &amp; recon</div>
+  <div class="fgrid">
+    <div class="fg"><label>Purchase price ($)</label><input id="v-buy" type="number" placeholder="8500" oninput="calcT()"/></div>
+    <div class="fg"><label>Recon cost ($)</label><input id="v-recon" type="number" placeholder="600" oninput="calcT()"/></div>
+    <div class="fg"><label>Date purchased</label><input id="v-datebuy" type="date"/></div>
+    <div class="fg"><label>Floored?</label><select id="v-floored"><option value="N">No</option><option value="Y">Yes</option></select></div>
+  </div>
+  <div class="calc-row"><span style="font-size:11px;color:var(--t3)">Total vehicle cost</span><span id="v-totalcost" class="acc" style="font-weight:700">$0</span></div>
+  <div class="sl">Sale info</div>
+  <div class="fgrid">
+    <div class="fg"><label>Sale price w/ doc ($)</label><input id="v-sale" type="number" placeholder="12500" oninput="calcT()"/></div>
+    <div class="fg"><label>Trade-in credit ($)</label><input id="v-trade" type="number" placeholder="0" oninput="calcT()"/></div>
+    <div class="fg"><label>Taxes collected ($)</label><input id="v-tax" type="number" placeholder="0" oninput="calcT()"/></div>
+    <div class="fg"><label>Other fees ($)</label><input id="v-fees" type="number" placeholder="0" oninput="calcT()"/></div>
+    <div class="fg"><label>Date sold</label><input id="v-datesold" type="date"/></div>
+    <div class="fg"><label>Status</label><select id="v-status"><option>In Stock</option><option>Pending</option><option>Sold</option></select></div>
+  </div>
+  <div class="calc-row" style="margin-bottom:6px"><span style="font-size:11px;color:var(--t3)">Total collected</span><span id="v-totalcollected" style="font-weight:700;color:#22D3A5">$0</span></div>
+  <div class="calc-row"><span style="font-size:11px;color:var(--t3)">Profit</span><span id="v-profit-calc" style="font-weight:700;font-size:16px">$0</span></div>
+  <div class="sl">Owner &amp; accounting</div>
+  <div class="fgrid">
+    <div class="fg"><label>Owner name</label><input id="v-owner" placeholder="John Smith"/></div>
+    <div class="fg"><label>Owner phone</label><input id="v-phone" placeholder="(801) 555-0100"/></div>
+    <div class="fg"><label>Owner email</label><input id="v-email" type="email" placeholder="john@email.com"/></div>
+    <div class="fg"><label>Owner address</label><input id="v-address" placeholder="123 Main St, Orem UT"/></div>
+    <div class="fg"><label>Fee reserve ($)</label><input id="v-feeaway" type="number" placeholder="0"/></div>
+    <div class="fg"><label>Taxes paid ($)</label><input id="v-taxpaid" type="number" placeholder="0"/></div>
+  </div>
+  <div class="fg"><label>Notes</label><textarea id="v-notes" placeholder="Notes about this deal..."></textarea></div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px"><input type="checkbox" id="v-paperwork" style="width:16px;height:16px;accent-color:var(--acc)"/><label for="v-paperwork" style="font-size:13px;color:var(--t2)">Paperwork complete</label></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end">
+    <button class="btn btn-s" onclick="closeVehicleModal()">Cancel</button>
+    <button class="btn btn-p" id="save-veh-btn" onclick="saveVehicle()"><i class="ti ti-device-floppy"></i> Save vehicle</button>
+  </div>
+</div></div></div>
+
+<!-- EXPENSE MODAL -->
+<div class="modal-wrap" id="exp-modal"><div class="overlay"><div class="modal" style="max-width:420px">
+  <div class="mhdr"><span class="mtitle">Add expense</span><button class="xbtn" onclick="closeExpModal()">&#x2715;</button></div>
+  <div class="fg"><label>Category</label><select id="e-cat"><option>Insurance</option><option>DMV / title fees</option><option>Advertising</option><option>Vehicle repair</option><option>Floorplan interest</option><option>Office / supplies</option><option>Dealer license / fees</option><option>Accounting / legal</option><option>Other</option></select></div>
+  <div class="fg"><label>Description</label><input id="e-desc" placeholder="e.g. Monthly insurance premium"/></div>
+  <div class="fgrid">
+    <div class="fg"><label>Amount ($)</label><input id="e-amt" type="number" placeholder="0"/></div>
+    <div class="fg"><label>Date</label><input id="e-date" type="date"/></div>
+  </div>
+  <div class="fg"><label>Vehicle (if related)</label><select id="e-veh"><option value="">Not vehicle-specific</option></select></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+    <button class="btn btn-s" onclick="closeExpModal()">Cancel</button>
+    <button class="btn btn-p" id="save-exp-btn" onclick="saveExpense()"><i class="ti ti-device-floppy"></i> Save</button>
+  </div>
+</div></div></div>
+
+<!-- CUSTOMER MODAL -->
+<div class="modal-wrap" id="cx-modal"><div class="overlay"><div class="modal" style="max-width:480px">
+  <div class="mhdr"><span class="mtitle" id="cx-mod-title">Add customer</span><button class="xbtn" onclick="closeCxModal()">&#x2715;</button></div>
+  <div class="sl">Contact info</div>
+  <div class="fgrid">
+    <div class="fg"><label>First name</label><input id="cx-first" placeholder="John"/></div>
+    <div class="fg"><label>Last name</label><input id="cx-last" placeholder="Smith"/></div>
+    <div class="fg"><label>Phone</label><input id="cx-phone" placeholder="(801) 555-0100"/></div>
+    <div class="fg"><label>Email</label><input id="cx-email" type="email" placeholder="john@email.com"/></div>
+  </div>
+  <div class="fg"><label>Address</label><input id="cx-address" placeholder="123 Main St, Orem, UT 84097"/></div>
+  <div class="sl">Vehicle purchased</div>
+  <div class="fg"><label>Link to inventory</label><select id="cx-veh"><option value="">No vehicle linked</option></select></div>
+  <div class="fg"><label>Notes</label><textarea id="cx-notes" placeholder="Notes about this customer..."></textarea></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+    <button class="btn btn-s" onclick="closeCxModal()">Cancel</button>
+    <button class="btn btn-p" id="save-cx-btn" onclick="saveCustomer()"><i class="ti ti-device-floppy"></i> Save customer</button>
+  </div>
+</div></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ─── SUPABASE SETUP ───────────────────────────────────────────────
+const SURL = 'https://icxvogchlebrmgmjcbpj.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljeHZvZ2NobGVicm1nbWpjYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTUwODEsImV4cCI6MjA5NjA5MTA4MX0.z2GO9dxQhBLrQvGcMExW8qDcg_fDaUqqmcjTtOmlisg';
+const sb = supabase.createClient(SURL, SKEY);
+
+// ─── STATE ────────────────────────────────────────────────────────
+var vehicles=[], expenses=[], customers=[];
+var editVehId=null, editCxId=null, activeCxId=null, yearlyMode='profit';
+var charts={};
+var MONTHS=['2026-01','2026-02','2026-03','2026-04','2026-05'];
+var MN=['Jan','Feb','Mar','Apr','May'];
+var AVC=['#4F8EF7','#22D3A5','#F7A84F','#A78BFA','#F75A5A','#F472B6'];
+
+// ─── SYNC STATUS ─────────────────────────────────────────────────
+function setSyncStatus(state, msg) {
+  var el = document.getElementById('sync-status');
+  el.className = 'sync ' + state;
+  el.innerHTML = '<i class="ti ti-' + (state==='saving'?'loader':'cloud-check') + '"></i><span class="sync-label">' + msg + '</span>';
+}
+
+// ─── LOAD ALL DATA ────────────────────────────────────────────────
+async function loadAll() {
+  setSyncStatus('saving', 'Loading...');
+  try {
+    var vRes = await sb.from('vehicles').select('*').order('created_at', {ascending:true});
+    var eRes = await sb.from('expenses').select('*').order('created_at', {ascending:true});
+    var cRes = await sb.from('customers').select('*').order('created_at', {ascending:true});
+    if(vRes.error) throw vRes.error;
+    if(eRes.error) throw eRes.error;
+    if(cRes.error) throw cRes.error;
+    vehicles = (vRes.data||[]).map(dbToVeh);
+    expenses = (eRes.data||[]).map(dbToExp);
+    customers = (cRes.data||[]);
+    setSyncStatus('saved', 'Synced');
+    renderDash();
+  } catch(e) {
+    setSyncStatus('error', 'Connection error');
+    console.error(e);
+  }
+}
+
+// ─── DB FIELD MAPPING ────────────────────────────────────────────
+function dbToVeh(r) {
+  return {
+    id:r.id, year:r.year||0, make:r.make||'', model:r.model||'', trim:r.trim||'',
+    color:r.color||'', miles:r.miles||0, vin:r.vin||'', title:r.title||'Clean',
+    buy:r.buy||0, recon:r.recon||0, datebuy:r.datebuy||'', floored:r.floored||'N',
+    sale:r.sale||0, trade:r.trade||0, tax:r.tax||0, fees:r.fees||0,
+    datesold:r.datesold||'', status:r.status||'In Stock',
+    owner:r.owner||'', phone:r.phone||'', email:r.email||'', address:r.address||'',
+    feeaway:r.feeaway||0, taxpaid:r.taxpaid||0, paperwork:!!r.paperwork, notes:r.notes||'',
+    listing:!!r.listing, soldListing:!!r.sold_listing,
+    listingDesc:r.listing_desc||'', listingPrice:r.listing_price||0, listingMiles:r.listing_miles||0
+  };
+}
+function dbToExp(r) {
+  return {id:r.id, date:r.date||'', cat:r.category||'', desc:r.description||'', amt:r.amt||0, vehId:r.veh_id||null};
+}
+function vehToDB(v) {
+  return {
+    year:v.year, make:v.make, model:v.model, trim:v.trim, color:v.color,
+    miles:v.miles, vin:v.vin, title:v.title, buy:v.buy, recon:v.recon,
+    datebuy:v.datebuy||null, floored:v.floored, sale:v.sale, trade:v.trade,
+    tax:v.tax, fees:v.fees, datesold:v.datesold||null, status:v.status,
+    owner:v.owner, phone:v.phone, email:v.email, address:v.address,
+    feeaway:v.feeaway, taxpaid:v.taxpaid, paperwork:v.paperwork, notes:v.notes,
+    listing:v.listing||false, sold_listing:v.soldListing||false,
+    listing_desc:v.listingDesc||null, listing_price:v.listingPrice||null, listing_miles:v.listingMiles||null
+  };
+}
+function expToDB(e) {
+  return {date:e.date, category:e.cat, description:e.desc, amt:e.amt, veh_id:e.vehId||null};
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────
+function fmt(n){if(n===undefined||n===null||n==='')return'--';return'$'+Math.abs(Math.round(n)).toLocaleString();}
+function fmtS(n){return(n<0?'-$':'$')+Math.abs(Math.round(n)).toLocaleString();}
+function vP(v){return(v.sale||0)-(v.buy||0)-(v.recon||0)-(v.trade||0);}
+function vTC(v){return(v.buy||0)+(v.recon||0);}
+function vCol(v){return(v.sale||0)+(v.tax||0)+(v.fees||0);}
+function pc(n){return n>=0?'g':'r';}
+function dts(a,b){if(!a||!b)return null;return Math.max(0,Math.round((new Date(b)-new Date(a))/864e5));}
+function ini(f,l){return((f||'?')[0]+(l||'')[0]).toUpperCase();}
+function avc(id){return AVC[id%AVC.length];}
+function sb2(s){if(s==='Sold')return '<span class="badge bg">Sold</span>';if(s==='Pending')return '<span class="badge ba">Pending</span>';return '<span class="badge bb">In Stock</span>';}
+function tb(t){if(t==='Rebuilt')return '<span class="badge ba">'+t+'</span>';if(t==='Salvage')return '<span class="badge br">'+t+'</span>';return '<span class="badge bb">'+t+'</span>';}
+function chk(b){return b?'<span class="badge bg"><i class="ti ti-check" style="font-size:10px"></i> Done</span>':'<span class="badge ba">Pending</span>';}
+function mc(lbl,val,cls,acc,sub){return '<div class="mc"><div class="mc-acc" style="background:'+acc+'"></div><div class="mc-lbl">'+lbl+'</div><div class="mc-val '+(cls||'')+'">'+val+'</div>'+(sub?'<div class="mc-sub">'+sub+'</div>':'')+'</div>';}
+function dr(lbl,val){return '<div class="drow"><span style="color:var(--t2)">'+lbl+'</span><span style="font-weight:600">'+val+'</span></div>';}
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+var sc={y:{ticks:{callback:function(v){return '$'+Math.round(v/1000)+'k';},color:'#6B7896',font:{size:10}},grid:{color:'rgba(46,54,80,.5)'},border:{display:false}},x:{ticks:{color:'#6B7896',font:{size:10}},grid:{display:false},border:{display:false}}};
+function mkC(id,type,data,opts){dc(id);var o=Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}},opts||{});charts[id]=new Chart(document.getElementById(id),{type:type,data:data,options:o});}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────
+var TITLES={dash:['Dashboard','May 2026'],customers:['Customers','Contact list'],inventory:['Inventory','All vehicles'],listings:['Listings','Active for-sale vehicles'],expenses:['Expenses','Track & manage costs'],pl:['Monthly P&L','Profit & loss'],reports:['Reports','Year-to-date']};
+function showPg(id,el){
+  document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('pg-'+id).classList.add('active');
+  document.querySelectorAll('.sbi').forEach(function(t){t.classList.remove('active');});
+  if(el)el.classList.add('active');
+  document.getElementById('pg-title').textContent=TITLES[id][0];
+  document.getElementById('pg-sub').textContent=TITLES[id][1];
+  if(window.innerWidth<768)document.getElementById('sidebar').classList.remove('open');
+  closeVehicleModal();closeExpModal();closeCxModal();
+  var fns={dash:renderDash,customers:renderCustomers,inventory:renderInv,listings:renderListings,expenses:renderExp,pl:renderPL,reports:renderReports};
+  if(fns[id])fns[id]();
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────
+function renderDash(){
+  var may=vehicles.filter(function(v){return v.datesold&&v.datesold.startsWith('2026-05');});
+  var allSold=vehicles.filter(function(v){return v.status==='Sold';});
+  var rev=may.reduce(function(a,v){return a+v.sale;},0);
+  var pft=may.reduce(function(a,v){return a+vP(v);},0);
+  var expMay=expenses.filter(function(e){return e.date&&e.date.startsWith('2026-05');}).reduce(function(a,e){return a+e.amt;},0);
+  var inStk=vehicles.filter(function(v){return v.status==='In Stock';}).length;
+  var sw=allSold.filter(function(v){return v.datebuy&&v.datesold;});
+  var avgD=sw.length?sw.reduce(function(a,v){return a+dts(v.datebuy,v.datesold);},0)/sw.length:0;
+  document.getElementById('dash-metrics').innerHTML=
+    mc('Revenue (May)',fmt(rev),'g','#22D3A5',may.length+' cars sold')+
+    mc('Gross profit',fmtS(pft),pc(pft),'#4F8EF7')+
+    mc('Expenses (May)',fmt(expMay),'r','#F75A5A')+
+    mc('Net (May)',fmtS(pft-expMay),pc(pft-expMay),pft-expMay>=0?'#22D3A5':'#F75A5A')+
+    mc('In stock',inStk,'acc','#4F8EF7')+
+    mc('Total deals',vehicles.length,'','#A78BFA',allSold.length+' sold')+
+    mc('Avg days to sell',avgD?Math.round(avgD)+' days':'--','','#F7A84F')+
+    mc('Avg profit/car',fmt(allSold.length?allSold.reduce(function(a,v){return a+vP(v);},0)/allSold.length:0),'g','#22D3A5');
+  renderDailyChart();renderYearlyChart();
+  var recent=vehicles.slice().reverse().slice(0,5);
+  document.getElementById('dash-table').innerHTML=recent.length?recent.map(function(v){
+    var d=dts(v.datebuy,v.datesold);
+    return '<tr><td><div style="font-weight:600;font-size:13px">'+v.year+' '+v.make+' '+v.model+' '+v.trim+'</div><div style="font-size:11px;color:var(--t3)">'+tb(v.title)+'</div></td><td>'+(d!==null?d+' days':'--')+'</td><td>'+fmt(vTC(v))+'</td><td>'+(v.sale?fmt(v.sale):'--')+'</td><td class="'+pc(vP(v))+'">'+fmtS(vP(v))+'</td><td>'+sb2(v.status)+'</td></tr>';
+  }).join(''):'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--t3)">No vehicles yet</td></tr>';
+  var v6=vehicles.slice(-6);
+  if(v6.length)mkC('c-profit','bar',{labels:v6.map(function(v){return v.make+' '+v.model;}),datasets:[{data:v6.map(function(v){return vP(v);}),backgroundColor:v6.map(function(v){return vP(v)>=0?'#22D3A5':'#F75A5A';}),borderRadius:5,borderSkipped:false}]},{scales:sc});
+}
+
+function renderDailyChart(){
+  dc('c-daily');
+  var labels=[],prof=[],tipD=[];
+  for(var d=1;d<=31;d++){
+    var ds='2026-05-'+(d<10?'0':'')+d;
+    var dv=vehicles.filter(function(v){return v.datesold===ds;});
+    labels.push(d);prof.push(dv.reduce(function(a,v){return a+vP(v);},0));
+    tipD.push(dv.map(function(v){return v.year+' '+v.make+' '+v.model+': '+fmtS(vP(v));}));
+  }
+  var tip=document.getElementById('tooltip');
+  charts['c-daily']=new Chart(document.getElementById('c-daily'),{type:'bar',data:{labels:labels,datasets:[{data:prof,backgroundColor:prof.map(function(p){return p>0?'rgba(34,211,165,.7)':p<0?'rgba(247,90,90,.7)':'rgba(107,120,150,.25)';}),borderRadius:4,borderSkipped:false,hoverBackgroundColor:prof.map(function(p){return p>0?'#22D3A5':p<0?'#F75A5A':'#6B7896';})}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false,external:function(ctx){var tt=ctx.tooltip;if(tt.opacity===0){tip.classList.remove('show');return;}var idx=tt.dataPoints[0].dataIndex;var deals=tipD[idx];if(!deals.length){tip.classList.remove('show');return;}var pos=ctx.chart.canvas.getBoundingClientRect();tip.style.left=(pos.left+window.scrollX+tt.caretX+12)+'px';tip.style.top=(pos.top+window.scrollY+tt.caretY-10)+'px';tip.innerHTML='<div style="font-weight:700;margin-bottom:4px">May '+(idx+1)+'</div>'+deals.map(function(d){return'<div style="color:#22D3A5">'+d+'</div>';}).join('');tip.classList.add('show');}}},scales:{y:{ticks:{callback:function(v){return v===0?'$0':'$'+Math.round(v/1000)+'k';},color:'#6B7896',font:{size:10}},grid:{color:'rgba(46,54,80,.4)'},border:{display:false}},x:{ticks:{color:'#6B7896',font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:12},grid:{display:false},border:{display:false}}}}});
+}
+
+function setYTog(mode,el){yearlyMode=mode;document.querySelectorAll('#yearly-tog .tog-btn').forEach(function(b){b.classList.remove('active');});el.classList.add('active');renderYearlyChart();}
+function renderYearlyChart(){
+  dc('c-yearly');
+  var data,color;
+  if(yearlyMode==='profit'){data=MONTHS.map(function(m){return vehicles.filter(function(v){return v.datesold&&v.datesold.startsWith(m)&&v.status==='Sold';}).reduce(function(a,v){return a+vP(v);},0);});color='#4F8EF7';}
+  else if(yearlyMode==='revenue'){data=MONTHS.map(function(m){return vehicles.filter(function(v){return v.datesold&&v.datesold.startsWith(m)&&v.status==='Sold';}).reduce(function(a,v){return a+v.sale;},0);});color='#22D3A5';}
+  else{data=MONTHS.map(function(m){return expenses.filter(function(e){return e.date&&e.date.startsWith(m);}).reduce(function(a,e){return a+e.amt;},0);});color='#F75A5A';}
+  charts['c-yearly']=new Chart(document.getElementById('c-yearly'),{type:'bar',data:{labels:MN,datasets:[{data:data,backgroundColor:color+'99',borderColor:color,borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:sc}});
+}
+
+// ─── LISTINGS ────────────────────────────────────────────────────
+function renderListings(){
+  var f=document.getElementById('listing-filter').value;
+  var list=vehicles.filter(function(v){return v.listing;});
+  if(f==='active')list=list.filter(function(v){return!v.soldListing;});
+  if(f==='sold')list=list.filter(function(v){return v.soldListing;});
+  document.getElementById('listings-grid').innerHTML=list.length?list.map(function(v){
+    var isSold=v.soldListing;
+    return '<div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;position:relative">'+
+      (isSold?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:10;display:flex;align-items:center;justify-content:center;border-radius:14px"><div style="background:#F75A5A;color:#fff;font-size:22px;font-weight:900;padding:12px 32px;border-radius:8px;transform:rotate(-15deg);border:3px solid #fff;letter-spacing:.08em;box-shadow:0 4px 24px rgba(0,0,0,.5)">SOLD</div></div>':'')+
+      '<div style="height:200px;background:linear-gradient(135deg,#1E2333,#252B3B);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px"><i class="ti ti-car" style="font-size:48px;color:var(--t3);opacity:.4"></i><div style="font-size:11px;color:var(--t3)">'+v.color+' '+v.year+' '+v.make+' '+v.model+'</div></div>'+
+      '<div style="padding:16px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'+
+          '<div><div style="font-size:16px;font-weight:700">'+v.year+' '+v.make+' '+v.model+' '+v.trim+'</div><div style="font-size:12px;color:var(--t3);margin-top:3px">'+(v.listingMiles?v.listingMiles.toLocaleString()+' miles':'')+' &middot; '+v.color+' &middot; Clean title</div></div>'+
+          (isSold?'<span class="badge br">Sold</span>':'<span class="badge bg">For Sale</span>')+
+        '</div>'+
+        '<div style="font-size:20px;font-weight:800;color:#22D3A5;margin-bottom:10px">$'+(v.listingPrice||v.sale).toLocaleString()+'</div>'+
+        '<div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:12px">'+v.listingDesc+'</div>'+
+        '<button class="btn btn-s" style="font-size:11px;width:100%" onclick="openVehicleModal('+v.id+')"><i class="ti ti-edit"></i> Edit listing</button>'+
+      '</div>'+
+    '</div>';
+  }).join(''):'<div style="text-align:center;padding:3rem;color:var(--t3)">No listings yet</div>';
+}
+
+// ─── CUSTOMERS ───────────────────────────────────────────────────
+function renderCustomers(){renderCxList();}
+function renderCxList(){
+  var q=(document.getElementById('cx-search').value||'').toLowerCase();
+  var list=customers;
+  if(q)list=list.filter(function(c){var veh=c.veh_id?vehicles.find(function(v){return v.id===c.veh_id;}):null;return(c.first+' '+c.last+' '+c.phone+' '+(c.email||'')+' '+(c.address||'')+' '+(veh?veh.year+' '+veh.make+' '+veh.model:'')).toLowerCase().includes(q);});
+  var scroll=document.getElementById('cx-scroll');
+  if(!list.length){scroll.innerHTML='<div style="padding:2rem;text-align:center;color:var(--t3);font-size:13px">No customers found</div>';return;}
+  scroll.innerHTML=list.map(function(c){var veh=c.veh_id?vehicles.find(function(v){return v.id===c.veh_id;}):null;return '<div class="cx-item'+(activeCxId===c.id?' active':'')+'" onclick="selectCx('+c.id+')"><div class="cx-av" style="background:'+avc(c.id)+'22;color:'+avc(c.id)+'">'+ini(c.first,c.last)+'</div><div style="min-width:0"><div style="font-size:13px;font-weight:600">'+c.first+' '+c.last+'</div><div style="font-size:11px;color:var(--t3)">'+(veh?veh.year+' '+veh.make+' '+veh.model:c.phone)+'</div></div></div>';}).join('');
+  if(activeCxId)renderCxDetail(activeCxId);
+}
+function selectCx(id){activeCxId=id;renderCxList();}
+function renderCxDetail(id){
+  var c=customers.find(function(x){return x.id===id;});
+  if(!c){return;}
+  var veh=c.veh_id?vehicles.find(function(v){return v.id===c.veh_id;}):null;
+  var col=avc(c.id);
+  var h='<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--bdr)"><div class="cx-av-lg" style="background:'+col+'22;color:'+col+'">'+ini(c.first,c.last)+'</div><div><div style="font-size:18px;font-weight:700">'+c.first+' '+c.last+'</div><div style="font-size:12px;color:var(--t3);margin-top:3px">'+c.phone+(c.email?' &middot; '+c.email:'')+'</div></div></div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;margin-bottom:18px"><div style="padding:8px 0;border-bottom:1px solid rgba(46,54,80,.4)"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;font-weight:700;margin-bottom:3px">Phone</div><div style="font-size:13px;font-weight:500">'+(c.phone||'--')+'</div></div><div style="padding:8px 0;border-bottom:1px solid rgba(46,54,80,.4)"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;font-weight:700;margin-bottom:3px">Email</div><div style="font-size:12px;font-weight:500">'+(c.email||'--')+'</div></div><div style="padding:8px 0;grid-column:span 2"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;font-weight:700;margin-bottom:3px">Address</div><div style="font-size:13px;font-weight:500">'+(c.address||'--')+'</div></div></div>';
+  if(veh){h+='<div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:8px">Vehicle purchased</div><div style="background:var(--d4);border:1px solid var(--bdr);border-radius:10px;padding:14px;display:flex;align-items:center;gap:14px;margin-bottom:10px"><div style="width:42px;height:42px;border-radius:8px;background:rgba(79,142,247,.12);display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:20px;flex-shrink:0"><i class="ti ti-car"></i></div><div style="flex:1"><div style="font-size:13px;font-weight:600">'+veh.year+' '+veh.make+' '+veh.model+' '+veh.trim+'</div><div style="font-size:11px;color:var(--t3);margin-top:2px">'+(veh.miles?veh.miles.toLocaleString()+' mi &middot; ':'')+tb(veh.title)+'</div></div><div class="'+pc(vP(veh))+'" style="font-size:13px;font-weight:700">'+(veh.sale?fmtS(vP(veh)):'--')+'</div></div>';}
+  if(c.notes)h+='<div style="background:var(--d4);border:1px solid var(--bdr);border-radius:10px;padding:12px;margin-bottom:12px"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;margin-bottom:5px">Notes</div><div style="font-size:13px">'+c.notes+'</div></div>';
+  h+='<div style="display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--bdr)"><button class="btn btn-s" onclick="openCxModal('+c.id+')"><i class="ti ti-edit"></i> Edit</button><button class="btn btn-s btn-danger" onclick="deleteCx('+c.id+')"><i class="ti ti-trash"></i> Delete</button></div>';
+  document.getElementById('cx-detail').innerHTML=h;
+}
+
+// ─── INVENTORY ───────────────────────────────────────────────────
+function renderInv(){
+  var f=document.getElementById('inv-filter').value;
+  var q=(document.getElementById('inv-search').value||'').toLowerCase();
+  var list=f?vehicles.filter(function(v){return v.status===f;}):vehicles.slice();
+  if(q)list=list.filter(function(v){return(v.year+' '+v.make+' '+v.model+' '+v.trim+' '+(v.vin||'')+' '+(v.owner||'')).toLowerCase().includes(q);});
+  document.getElementById('inv-table').innerHTML=list.length?list.map(function(v){return '<tr><td><div style="font-weight:600;font-size:13px">'+v.year+' '+v.make+' '+v.model+'</div><div style="font-size:11px;color:var(--t3)">'+v.trim+' &middot; '+tb(v.title)+'</div></td><td>'+(v.miles?v.miles.toLocaleString()+' mi':'--')+'</td><td style="font-size:11px;color:var(--t3)">'+(v.vin||'--')+'</td><td style="color:var(--t3)">'+(v.datebuy||'--')+'</td><td>'+fmt(v.buy)+'</td><td>'+fmt(v.recon)+'</td><td style="font-weight:600">'+fmt(vTC(v))+'</td><td>'+(v.sale?fmt(v.sale):'--')+'</td><td>'+(v.trade?fmt(v.trade):'--')+'</td><td class="'+pc(vP(v))+'">'+(v.sale?fmtS(vP(v)):'--')+'</td><td>'+(v.tax?fmt(v.tax):'--')+'</td><td>'+(v.fees?fmt(v.fees):'--')+'</td><td>'+(v.sale?fmt(vCol(v)):'--')+'</td><td style="color:var(--t3)">'+(v.datesold||'--')+'</td><td>'+(dts(v.datebuy,v.datesold)!==null?dts(v.datebuy,v.datesold)+' days':'--')+'</td><td>'+(v.owner||'--')+'</td><td style="font-size:11px;color:var(--t3);max-width:130px;overflow:hidden;text-overflow:ellipsis">'+(v.address||'--')+'</td><td style="font-size:11px;color:var(--t3)">'+(v.phone||'--')+'</td><td>'+(v.feeaway?fmt(v.feeaway):'--')+'</td><td>'+(v.taxpaid?fmt(v.taxpaid):'--')+'</td><td><span class="badge '+(v.floored==='Y'?'ba':'bg')+'">'+v.floored+'</span></td><td>'+chk(v.paperwork)+'</td><td>'+sb2(v.status)+'</td><td><button class="btn-sm" onclick="openVehicleModal('+v.id+')"><i class="ti ti-edit"></i> Edit</button></td></tr>';}).join(''):'<tr><td colspan="24" style="text-align:center;padding:2.5rem;color:var(--t3)">No vehicles found</td></tr>';
+}
+
+// ─── EXPENSES ────────────────────────────────────────────────────
+function renderExp(){
+  var mf=document.getElementById('exp-mf').value;
+  var cf=document.getElementById('exp-cf').value;
+  var sq=(document.getElementById('exp-search').value||'').toLowerCase();
+  var list=expenses;
+  if(mf)list=list.filter(function(e){return e.date&&e.date.startsWith(mf);});
+  if(cf)list=list.filter(function(e){return e.cat===cf;});
+  if(sq)list=list.filter(function(e){return(e.desc+' '+e.cat+' '+e.date+' '+e.amt).toLowerCase().includes(sq);});
+  var total=list.reduce(function(a,e){return a+e.amt;},0);
+  document.getElementById('exp-total').textContent=fmt(total);
+  var cats={};list.forEach(function(e){cats[e.cat]=(cats[e.cat]||0)+1;});
+  document.getElementById('exp-metrics').innerHTML=mc('Total',fmt(total),'r','#F75A5A')+mc('Entries',list.length,'acc','#4F8EF7')+mc('Categories',Object.keys(cats).length,'','#A78BFA')+mc('Avg/entry',fmt(list.length?total/list.length:0),'','#F7A84F');
+  document.getElementById('exp-table').innerHTML=list.length?list.slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');}).map(function(e){var veh=e.vehId?vehicles.find(function(v){return v.id===e.vehId;}):null;return '<tr><td style="color:var(--t3)">'+e.date+'</td><td><span class="badge bb">'+e.cat+'</span></td><td>'+e.desc+'</td><td class="r">'+fmt(e.amt)+'</td><td style="font-size:11px;color:var(--t3)">'+(veh?veh.year+' '+veh.make+' '+veh.model:'--')+'</td><td><button class="btn-sm btn-danger" onclick="delExp('+e.id+')"><i class="ti ti-trash"></i></button></td></tr>';}).join(''):'<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--t3)">No expenses found</td></tr>';
+}
+
+// ─── P&L ─────────────────────────────────────────────────────────
+function renderPL(){
+  var m=document.getElementById('pl-month').value;
+  var soldM=vehicles.filter(function(v){return v.datesold&&v.datesold.startsWith(m)&&v.status==='Sold';});
+  var expM=expenses.filter(function(e){return e.date&&e.date.startsWith(m);});
+  var tR=soldM.reduce(function(a,v){return a+v.sale;},0),tT=soldM.reduce(function(a,v){return a+v.tax;},0),tF=soldM.reduce(function(a,v){return a+v.fees;},0);
+  var tG=soldM.reduce(function(a,v){return a+vP(v);},0),tE=expM.reduce(function(a,e){return a+e.amt;},0),net=tG-tE;
+  document.getElementById('pl-metrics').innerHTML=mc('Sold',soldM.length,'acc','#4F8EF7')+mc('Revenue',fmt(tR),'g','#22D3A5')+mc('Gross',fmtS(tG),pc(tG),'#22D3A5')+mc('Expenses',fmt(tE),'r','#F75A5A')+mc('Net',fmtS(net),pc(net),net>=0?'#22D3A5':'#F75A5A');
+  var cats={};expM.forEach(function(e){cats[e.cat]=(cats[e.cat]||0)+e.amt;});
+  document.getElementById('pl-rev').innerHTML=dr('Sale revenue',fmt(tR))+dr('Taxes collected',fmt(tT))+dr('Doc / other fees',fmt(tF))+'<div class="drow" style="margin-top:6px"><span style="font-weight:600;color:var(--t1)">Total collected</span><span class="g" style="font-size:15px">'+fmt(tR+tT+tF)+'</span></div>';
+  document.getElementById('pl-exp').innerHTML=Object.keys(cats).map(function(k){return dr(k,fmt(cats[k]));}).join('')+'<div class="drow" style="margin-top:6px"><span style="font-weight:600;color:var(--t1)">Total expenses</span><span class="r" style="font-size:15px">'+fmt(tE)+'</span></div>';
+  document.getElementById('pl-veh').innerHTML=soldM.length?soldM.map(function(v){return '<tr><td style="font-weight:600">'+v.year+' '+v.make+' '+v.model+'</td><td>'+fmt(v.buy)+'</td><td>'+fmt(v.recon)+'</td><td>'+fmt(v.sale)+'</td><td>'+fmt(v.tax)+'</td><td>'+fmt(v.fees)+'</td><td style="font-weight:600">'+fmt(vCol(v))+'</td><td class="'+pc(vP(v))+'" style="font-weight:700">'+fmtS(vP(v))+'</td></tr>';}).join(''):'<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--t3)">No vehicles sold</td></tr>';
+}
+
+// ─── REPORTS ─────────────────────────────────────────────────────
+function renderReports(){
+  var allSold=vehicles.filter(function(v){return v.status==='Sold';});
+  var ytdR=allSold.reduce(function(a,v){return a+v.sale;},0),ytdP=allSold.reduce(function(a,v){return a+vP(v);},0),ytdE=expenses.reduce(function(a,e){return a+e.amt;},0);
+  document.getElementById('rep-metrics').innerHTML=mc('YTD revenue',fmt(ytdR),'g','#22D3A5')+mc('YTD gross',fmtS(ytdP),pc(ytdP),'#4F8EF7')+mc('YTD expenses',fmt(ytdE),'r','#F75A5A')+mc('YTD net',fmtS(ytdP-ytdE),pc(ytdP-ytdE),ytdP-ytdE>=0?'#22D3A5':'#F75A5A')+mc('Cars sold',allSold.length,'acc','#A78BFA')+mc('Avg profit',fmt(allSold.length?ytdP/allSold.length:0),'','#4F8EF7');
+  var mP=MONTHS.map(function(m){return vehicles.filter(function(v){return v.datesold&&v.datesold.startsWith(m)&&v.status==='Sold';}).reduce(function(a,v){return a+vP(v);},0);});
+  var mR=MONTHS.map(function(m){return vehicles.filter(function(v){return v.datesold&&v.datesold.startsWith(m)&&v.status==='Sold';}).reduce(function(a,v){return a+v.sale;},0);});
+  var mE=MONTHS.map(function(m){return expenses.filter(function(e){return e.date&&e.date.startsWith(m);}).reduce(function(a,e){return a+e.amt;},0);});
+  mkC('c-trend','line',{labels:MN,datasets:[{data:mP,borderColor:'#4F8EF7',backgroundColor:'rgba(79,142,247,.1)',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:'#4F8EF7',borderWidth:2}]},{scales:sc});
+  mkC('c-revexp','bar',{labels:MN,datasets:[{data:mR,backgroundColor:'#4F8EF799',borderColor:'#4F8EF7',borderWidth:1,borderRadius:4},{data:mE,backgroundColor:'#F75A5A99',borderColor:'#F75A5A',borderWidth:1,borderRadius:4}]},{scales:sc});
+  var makes={};vehicles.forEach(function(v){makes[v.make]=(makes[v.make]||0)+vP(v);});
+  mkC('c-make','bar',{labels:Object.keys(makes),datasets:[{data:Object.values(makes),backgroundColor:['#4F8EF7','#22D3A5','#F7A84F','#A78BFA','#F75A5A'],borderRadius:6}]},{scales:sc});
+  mkC('c-expmon','bar',{labels:MN,datasets:[{data:mE,backgroundColor:'#F75A5A99',borderColor:'#F75A5A',borderWidth:1,borderRadius:4}]},{scales:sc});
+}
+
+// ─── CALC ────────────────────────────────────────────────────────
+function calcT(){
+  var buy=+document.getElementById('v-buy').value||0,recon=+document.getElementById('v-recon').value||0;
+  var sale=+document.getElementById('v-sale').value||0,trade=+document.getElementById('v-trade').value||0;
+  var tax=+document.getElementById('v-tax').value||0,fees=+document.getElementById('v-fees').value||0;
+  document.getElementById('v-totalcost').textContent=fmt(buy+recon);
+  document.getElementById('v-totalcollected').textContent=fmt(sale+tax+fees);
+  var p=sale-buy-recon-trade,el=document.getElementById('v-profit-calc');
+  el.textContent=fmtS(p);el.style.color=p>=0?'#22D3A5':'#F75A5A';
+}
+
+// ─── VEHICLE CRUD ────────────────────────────────────────────────
+function openVehicleModal(id){
+  editVehId=id||null;
+  var v=id?vehicles.find(function(x){return x.id===id;}):null;
+  document.getElementById('vmod-title').textContent=id?'Edit vehicle':'Add vehicle';
+  var fields={year:v&&v.year||'',make:v&&v.make||'',model:v&&v.model||'',trim:v&&v.trim||'',color:v&&v.color||'',miles:v&&v.miles||'',vin:v&&v.vin||'',title:v&&v.title||'Clean',buy:v&&v.buy||'',recon:v&&v.recon||'',datebuy:v&&v.datebuy||'',floored:v&&v.floored||'N',sale:v&&v.sale||'',trade:v&&v.trade||'',tax:v&&v.tax||'',fees:v&&v.fees||'',datesold:v&&v.datesold||'',status:v&&v.status||'In Stock',owner:v&&v.owner||'',phone:v&&v.phone||'',email:v&&v.email||'',address:v&&v.address||'',feeaway:v&&v.feeaway||'',taxpaid:v&&v.taxpaid||'',notes:v&&v.notes||''};
+  Object.keys(fields).forEach(function(k){var el=document.getElementById('v-'+k);if(el)el.value=fields[k];});
+  document.getElementById('v-paperwork').checked=!!(v&&v.paperwork);
+  calcT();
+  document.getElementById('veh-modal').classList.add('open');
+}
+function closeVehicleModal(){document.getElementById('veh-modal').classList.remove('open');}
+
+async function saveVehicle(){
+  var btn=document.getElementById('save-veh-btn');
+  btn.disabled=true;btn.textContent='Saving...';
+  setSyncStatus('saving','Saving...');
+  var v={
+    year:+document.getElementById('v-year').value||0,make:document.getElementById('v-make').value,
+    model:document.getElementById('v-model').value,trim:document.getElementById('v-trim').value,
+    color:document.getElementById('v-color').value,miles:+document.getElementById('v-miles').value||0,
+    vin:document.getElementById('v-vin').value,title:document.getElementById('v-title').value,
+    buy:+document.getElementById('v-buy').value||0,recon:+document.getElementById('v-recon').value||0,
+    datebuy:document.getElementById('v-datebuy').value||null,floored:document.getElementById('v-floored').value,
+    sale:+document.getElementById('v-sale').value||0,trade:+document.getElementById('v-trade').value||0,
+    tax:+document.getElementById('v-tax').value||0,fees:+document.getElementById('v-fees').value||0,
+    datesold:document.getElementById('v-datesold').value||null,status:document.getElementById('v-status').value,
+    owner:document.getElementById('v-owner').value,phone:document.getElementById('v-phone').value,
+    email:document.getElementById('v-email').value,address:document.getElementById('v-address').value,
+    feeaway:+document.getElementById('v-feeaway').value||0,taxpaid:+document.getElementById('v-taxpaid').value||0,
+    paperwork:document.getElementById('v-paperwork').checked,notes:document.getElementById('v-notes').value
+  };
+  try {
+    var res;
+    if(editVehId){
+      res=await sb.from('vehicles').update(v).eq('id',editVehId).select();
+    } else {
+      res=await sb.from('vehicles').insert(v).select();
+    }
+    if(res.error)throw res.error;
+    var saved=dbToVeh(res.data[0]);
+    if(editVehId){var i=vehicles.findIndex(function(x){return x.id===editVehId;});if(i>=0)vehicles[i]=saved;}
+    else vehicles.push(saved);
+    setSyncStatus('saved','Saved');
+    closeVehicleModal();
+    var ap=document.querySelector('.pg.active');
+    if(ap&&ap.id==='pg-inventory')renderInv();else renderDash();
+  } catch(e){
+    setSyncStatus('error','Save failed');
+    alert('Error saving: '+e.message);
+  }
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i> Save vehicle';
+}
+
+// ─── EXPENSE CRUD ────────────────────────────────────────────────
+function openExpModal(){
+  document.getElementById('e-veh').innerHTML='<option value="">Not vehicle-specific</option>'+vehicles.map(function(v){return '<option value="'+v.id+'">'+v.year+' '+v.make+' '+v.model+'</option>';}).join('');
+  document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('e-amt').value='';document.getElementById('e-desc').value='';
+  document.getElementById('exp-modal').classList.add('open');
+}
+function closeExpModal(){document.getElementById('exp-modal').classList.remove('open');}
+
+async function saveExpense(){
+  var btn=document.getElementById('save-exp-btn');
+  btn.disabled=true;btn.textContent='Saving...';
+  setSyncStatus('saving','Saving...');
+  var e={date:document.getElementById('e-date').value,category:document.getElementById('e-cat').value,description:document.getElementById('e-desc').value||'Expense',amt:+document.getElementById('e-amt').value||0,veh_id:+document.getElementById('e-veh').value||null};
+  try {
+    var res=await sb.from('expenses').insert(e).select();
+    if(res.error)throw res.error;
+    expenses.push(dbToExp(res.data[0]));
+    setSyncStatus('saved','Saved');
+    closeExpModal();
+    var ap=document.querySelector('.pg.active');
+    if(ap&&ap.id==='pg-expenses')renderExp();
+    renderDash();
+  } catch(err){
+    setSyncStatus('error','Save failed');
+    alert('Error: '+err.message);
+  }
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i> Save';
+}
+
+async function delExp(id){
+  if(!confirm('Delete this expense?'))return;
+  setSyncStatus('saving','Deleting...');
+  var res=await sb.from('expenses').delete().eq('id',id);
+  if(res.error){setSyncStatus('error','Delete failed');return;}
+  expenses=expenses.filter(function(e){return e.id!==id;});
+  setSyncStatus('saved','Synced');
+  renderExp();renderDash();
+}
+
+// ─── CUSTOMER CRUD ───────────────────────────────────────────────
+function openCxModal(id){
+  editCxId=id||null;
+  var c=id?customers.find(function(x){return x.id===id;}):null;
+  document.getElementById('cx-mod-title').textContent=id?'Edit customer':'Add customer';
+  document.getElementById('cx-veh').innerHTML='<option value="">No vehicle linked</option>'+vehicles.map(function(v){return '<option value="'+v.id+'"'+(c&&c.veh_id===v.id?' selected':'')+'>'+v.year+' '+v.make+' '+v.model+' '+v.trim+'</option>';}).join('');
+  ['first','last','phone','email','address','notes'].forEach(function(k){var el=document.getElementById('cx-'+k);if(el)el.value=c&&c[k]||'';});
+  document.getElementById('cx-modal').classList.add('open');
+}
+function closeCxModal(){document.getElementById('cx-modal').classList.remove('open');}
+
+async function saveCustomer(){
+  var btn=document.getElementById('save-cx-btn');
+  btn.disabled=true;btn.textContent='Saving...';
+  setSyncStatus('saving','Saving...');
+  var c={first:document.getElementById('cx-first').value,last:document.getElementById('cx-last').value,phone:document.getElementById('cx-phone').value,email:document.getElementById('cx-email').value,address:document.getElementById('cx-address').value,veh_id:+document.getElementById('cx-veh').value||null,notes:document.getElementById('cx-notes').value};
+  try {
+    var res;
+    if(editCxId){res=await sb.from('customers').update(c).eq('id',editCxId).select();}
+    else{res=await sb.from('customers').insert(c).select();}
+    if(res.error)throw res.error;
+    var saved=res.data[0];
+    if(editCxId){var i=customers.findIndex(function(x){return x.id===editCxId;});if(i>=0)customers[i]=saved;}
+    else customers.push(saved);
+    activeCxId=saved.id;
+    setSyncStatus('saved','Saved');
+    closeCxModal();renderCxList();
+  } catch(err){
+    setSyncStatus('error','Save failed');
+    alert('Error: '+err.message);
+  }
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i> Save customer';
+}
+
+async function deleteCx(id){
+  if(!confirm('Delete this customer?'))return;
+  var res=await sb.from('customers').delete().eq('id',id);
+  if(res.error){alert('Delete failed');return;}
+  customers=customers.filter(function(c){return c.id!==id;});
+  activeCxId=null;renderCxList();
+  document.getElementById('cx-detail').innerHTML='<div class="cx-empty"><i class="ti ti-users" style="font-size:40px;opacity:.3"></i><div style="font-size:13px">Select a customer</div></div>';
+}
+
+// ─── CSV IMPORT ──────────────────────────────────────────────────
+function importCSV(event){
+  var file=event.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    var lines=e.target.result.split('\n').filter(function(l){return l.trim();});
+    var headers=lines[0].split(',').map(function(h){return h.trim().toLowerCase().replace(/[^a-z0-9]/g,'');});
+    var count=0;
+    setSyncStatus('saving','Importing CSV...');
+    for(var i=1;i<lines.length;i++){
+      var cols=lines[i].split(',').map(function(c){return c.trim().replace(/^"|"$/g,'');});
+      var row={};
+      headers.forEach(function(h,idx){row[h]=cols[idx]||'';});
+      var v={
+        year:parseInt(row.year)||0,
+        make:row.make||'',model:row.model||'',trim:row.trim||'',color:row.color||'',
+        miles:parseInt(row.miles||row.mileage)||0,
+        vin:row.vin||'',title:row.title||'Clean',
+        buy:parseFloat(row.buy||row.purchaseprice)||0,
+        recon:parseFloat(row.recon||row.reconcost||row.totalreconcosts)||0,
+        datebuy:row.datebuy||row.datepurchased||null,
+        floored:row.floored||'N',
+        sale:parseFloat(row.sale||row.saleprice)||0,
+        trade:parseFloat(row.trade||row.tradeincredit)||0,
+        tax:parseFloat(row.tax||row.taxescollected)||0,
+        fees:parseFloat(row.fees||row.otherfees)||0,
+        datesold:row.datesold||null,
+        status:row.status||'In Stock',
+        owner:row.owner||row.newownername||'',
+        phone:row.phone||'',email:row.email||'',address:row.address||'',
+        feeaway:parseFloat(row.feeaway)||0,taxpaid:parseFloat(row.taxpaid)||0,
+        paperwork:row.paperwork==='Y'||row.paperworkdone==='Y',
+        notes:row.notes||''
+      };
+      if(v.make||v.model){
+        var res=await sb.from('vehicles').insert(v).select();
+        if(!res.error){vehicles.push(dbToVeh(res.data[0]));count++;}
+      }
+    }
+    setSyncStatus('saved','Imported '+count+' vehicles');
+    renderInv();renderDash();
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ─── BOOT ────────────────────────────────────────────────────────
+loadAll();
+</script>
+</body>
+</html>
